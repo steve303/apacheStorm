@@ -25,6 +25,10 @@ class SentenceSpout(storm.Spout):
         # TODO
         # Task: randomly generate sentence from sentences string array
         # Note: only generate one sentence in this function
+        sentence = random.choice(SENTENCES)
+        storm.logInfo("Emiting %s" % sentence)
+        storm.emit([sentence])
+
         pass
         # End
 
