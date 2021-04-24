@@ -13,18 +13,20 @@ class CountBolt(storm.BasicBolt):
         storm.logInfo("Counter bolt instance starting...")
 
         # Hint: Add necessary instance variables and classes if needed
-        self.c = Counter
+        self.c = Counter()
 
     def process(self, tup):
         # TODO
         # Task: word count
         # Hint: using instance variable to tracking the word count
-        if tup[0] not in self.c:
-            self.c[tup[0]] = 1
+        word = tup.values[0]
+        if word not in self.c:
+            self.c[word] = 1
         else:
-            self.c[tup[0]] += 1
-        storm.logInfo("Emmiting %s %d" % (tup[0], self.c[tup[0]]))
-        storm.emit([self.c[tup[0]])
+            self.c[word] += 1
+        count = str(self.c[word])    
+        storm.logInfo("Emmiting %s %s" % (word, count))
+        storm.emit([word, count])
         pass
         # End
 
