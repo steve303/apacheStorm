@@ -14,7 +14,8 @@ class TopNFinderBolt(storm.BasicBolt):
 
         # TODO:
         # Task: set N
-        pass
+        self.heap = []
+        
         # End
 
         # Hint: Add necessary instance variables and classes if needed
@@ -26,7 +27,23 @@ class TopNFinderBolt(storm.BasicBolt):
         Hint: implement efficient algorithm so that it won't be shutdown before task finished
               the algorithm we used when we developed the auto-grader is maintaining a N size min-heap
         '''
-        pass
+        word0 = tup.values[0]
+        count0 = tup.values[1] * -1  #in order to create maxheap
+        heapq.heappush(self.heap, (count0, word0))
+        
+        if len(self.heap) > 10:
+            self.heap.pop()
+        
+        
+        for i in range(len(self.heap)):
+            if i = 0:
+                word = self.heap[i][1]
+            else:
+                word = self.heap[i][1] + ', ' + word
+
+            storm.logInfo("Emitting %s" % word)
+            storm.emit([word])
+        
         # End
 
 

@@ -51,17 +51,119 @@ components:
   # Task: implement the redis store mapper
   # src/main/java/edu/illinois/storm/TopNStoreMapper.java
   # redis hash key for part D is "partDTopN"
-
+  - id: "storeMapper"
+    className: "edu.illinois.storm.WordCountStoreMapper"
+    constructorArgs:
+      - "partDTopN"        
+ 
 # spout definitions
 spouts:
-
+  - id: "sentence-spout"
+    className: "org.apache.storm.flux.wrappers.spouts.FluxShellSpout"
+    constructorArgs:
+      # Command line
+      - ["python", "file_reader_spout.py"]
+      # Output field(s)
+      - ["sentence"]
+    # parallelism hint
+    parallelism: 1
+ 
 # bolt definitions
 bolts:
   # Hint: the new top N tracking bolt you need implement in this part is
   # multilang/resources/top_n_finder_bolt.py
   # You need to load N from conf when initialize the bolt
+  - id: "topN-bolt":
+    className: "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    constructorArgs:
+    - ["python", "top_n_finder_bolt.py"]
+    #output field
+    - ["word"]
+    parallelism: 1
+
+
+  # multilang/resources/normalizer_bolt.py
+  - id: "normalizer-bolt"
+    className: "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    constructorArgs:
+    - ["python", "normalizer_bolt.py"]
+    #output field
+    - ["word"]
+    parallelism: 1
+
+  # Task: implement the split sentences bolt
+  # multilang/resources/split_sentence_bolt.py
+  - id: "splitter-bolt"
+    className: "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    constructorArgs:
+    #command line      
+    - ["python", "split_sentence_bolt.py"]            
+    #output field  
+    - ["word"]
+    parallelism: 1
+
+# Task: implement the word count bolt
+  # multilang/resources/word_count_bolt.py
+  - id: "counter-bolt"
+    className: "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    constructorArgs:
+    #command line      
+    - ["python", "word_count_bolt.py"]            
+    #output field  
+    - ["word", "count"]
+    parallelism: 1
+
+  # Task: initialize RedisStoreBolt using poolConfig and storeMapper
+  # ClassName is "org.apache.storm.redis.bolt.RedisStoreBolt"
+  - id: "redisStore-bolt"
+    className: "org.apache.storm.redis.bolt.RedisStoreBolt"
+    constructorArgs:
+    #command line      
+    - ref: "poolConfig"
+    - ref: "storeMapper"
+
 
 # stream definitions
 # stream definitions define connections between spouts and bolts.
 streams:
   # Hint: add new top N finder bolt into the topology
+  - name: "Counter -> TopN"
+    from: "counter-bolt"
+    to: "topN-bolt"
+    grouping:
+      type: SHUFFLE
+
+  # Hint: add new normalize bolt into the topology
+  - name: "splitter -> normalizer"
+    from: "splitter-bolt"
+    to: "normalizer-bolt"
+    grouping:
+      type: SHUFFLE
+
+  # Task: pipe output of sentences generating spout to split bolt
+  - name: "Spout --> Splitter" # name isn't used (placeholder for logging, UI, etc.)
+    # The stream emitter
+    from: "sentence-spout"
+    # The stream consumer
+    to: "splitter-bolt"
+    # Grouping type
+    grouping:
+      type: SHUFFLE
+    
+  # Task: pipe output of split bolt to word count bolt
+  # Hint: choose the right grouping type to make problem easier
+  - name: "Normalizer -> Counter"
+    from: "normalizer-bolt"
+    to: "counter-bolt"
+    grouping:
+      type: FIELDS
+      #field(s) to group on
+      args: ["word"]
+
+  # Task: pipe output of word count bolt to redis store bolt
+  - name: " TopN-Bolt -> Redis"
+    from: "TopN-bolt"
+    to: "redisStore-bolt"
+    grouping:
+      type:  SHUFFLE   
+ 
