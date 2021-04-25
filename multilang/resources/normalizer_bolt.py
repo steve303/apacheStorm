@@ -15,14 +15,20 @@ class NormalizerBolt(storm.BasicBolt):
             "any", "our", "may", "your", "these", "d", " ", "me", "so", "what",
             "him", "their"
         ]
-
+        self.set_commonWords = set(self._common_words)
         storm.logInfo("Normalizer bolt instance starting...")
 
     def process(self, tup):
         # TODO:
         # Task 1: make the words all lower case
         # Task 2: remove the common words
-        pass
+        if tup.values[0] not in self.set_commonWords:
+            word = tup.values[0].lower()
+            storm.logInfo("Emitting %s" % word)
+            storm.emit([word])
+            return
+        else:
+            return
         # End
 
 
