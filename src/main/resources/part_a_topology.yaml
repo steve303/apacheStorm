@@ -18,7 +18,7 @@
 # topology definition
 # name to be used when submitting
 
-name: "PartA"
+name: "part-A"
 
 # topology configuration
 # this will be passed to the submitter as a map of config options
@@ -29,7 +29,7 @@ config:
     # set it to false before submitting
     #topology.debug: false
     topology.debug: true
-
+    topology.workers: 1
     # Hint: you can set input file path here
     # make sure it's "/tmp/data.txt" in your final submission
 

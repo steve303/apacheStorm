@@ -29,7 +29,7 @@ class SentenceSpout(storm.Spout):
         storm.logInfo("Emiting %s" % sentence)
         storm.emit([sentence])
 
-        pass
+        return
         # End
 
 
