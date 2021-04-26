@@ -30,7 +30,7 @@ config:
     topology.max.task.parallelism: 3
     # set this to true if you want to see more debug log
     # set it to false before submitting
-    topology.debug: false
+    topology.debug: true 
     # Hint: you can set input file path here
     # make sure it's "/tmp/data.txt" in your final submission
 
@@ -52,7 +52,7 @@ components:
   # src/main/java/edu/illinois/storm/TopNStoreMapper.java
   # redis hash key for part D is "partDTopN"
   - id: "storeMapper"
-    className: "edu.illinois.storm.WordCountStoreMapper"
+    className: "edu.illinois.storm.TopNStoreMapper"
     constructorArgs:
       - "partDTopN"        
  
@@ -73,12 +73,12 @@ bolts:
   # Hint: the new top N tracking bolt you need implement in this part is
   # multilang/resources/top_n_finder_bolt.py
   # You need to load N from conf when initialize the bolt
-  - id: "topN-bolt":
+  - id: "topN-bolt"
     className: "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
     constructorArgs:
     - ["python", "top_n_finder_bolt.py"]
     #output field
-    - ["word"]
+    - ["word", "count"]
     parallelism: 1
 
 
@@ -131,7 +131,8 @@ streams:
     from: "counter-bolt"
     to: "topN-bolt"
     grouping:
-      type: SHUFFLE
+      type: FIELDS
+      args: ["word"]
 
   # Hint: add new normalize bolt into the topology
   - name: "splitter -> normalizer"
@@ -161,8 +162,8 @@ streams:
       args: ["word"]
 
   # Task: pipe output of word count bolt to redis store bolt
-  - name: " TopN-Bolt -> Redis"
-    from: "TopN-bolt"
+  - name: " topN-bolt -> Redis"
+    from: "topN-bolt"
     to: "redisStore-bolt"
     grouping:
       type:  SHUFFLE   

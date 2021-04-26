@@ -10,12 +10,12 @@ class TopNFinderBolt(storm.BasicBolt):
         self._conf = conf
         self._context = context
 
-        storm.logInfo("Counter bolt instance starting...")
+        storm.logInfo("topN bolt instance starting...")
 
         # TODO:
         # Task: set N
-        self.heap = []
-        
+        #self.h = []
+        self.c = Counter() 
         # End
 
         # Hint: Add necessary instance variables and classes if needed
@@ -27,23 +27,46 @@ class TopNFinderBolt(storm.BasicBolt):
         Hint: implement efficient algorithm so that it won't be shutdown before task finished
               the algorithm we used when we developed the auto-grader is maintaining a N size min-heap
         '''
-        word0 = tup.values[0]
-        count0 = tup.values[1] * -1  #in order to create maxheap
-        heapq.heappush(self.heap, (count0, word0))
+        #storm.logInfo('******************************************************************')
+        word0 = tup.values[0].strip()
+        if word0 == '':
+            return
+        #storm.logInfo("*********************** %s " % word0)
+        count0 = int(tup.values[1])    #in order to create maxheap
+        #storm.logInfo("*********************** %s " % count0)
+        '''
+        heapq.heappush(self.h, (count0, word0))
         
-        if len(self.heap) > 10:
-            self.heap.pop()
-        
-        
-        for i in range(len(self.heap)):
-            if i = 0:
-                word = self.heap[i][1]
-            else:
-                word = self.heap[i][1] + ', ' + word
+        if len(self.h) > 10:
+            self.h.pop()
 
-            storm.logInfo("Emitting %s" % word)
-            storm.emit([word])
-        
+        f = open('/mp7/solution/MP7/test2.txt', 'a')
+        for item in self.h:
+            s = item[1] + ':' + str(item[0]) + '\n'
+            f.write(s)
+        f.write('\n')    
+        f.close()
+        for i in range(len(self.h)):
+            if i == 0:
+                topNstring = self.h[i][1]
+            else:
+                topNstring = self.h[i][1] + ', ' + topNstring 
+        '''
+        self.c[word0] = count0
+        topN = self.c.most_common(10)
+
+        for i in range(len(topN)):
+            if i == 0:
+                topNstring = topN[i][0]
+            else:
+                topNstring = topN[i][0] + ', ' + topNstring 
+
+ 
+        word = 'top-N'
+        count = topNstring
+        storm.logInfo("Emitting %s %s" % (word, count))
+        storm.emit([word, count])
+        return
         # End
 
 
