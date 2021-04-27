@@ -89,7 +89,7 @@ bolts:
     - ["python", "normalizer_bolt.py"]
     #output field
     - ["word"]
-    parallelism: 2
+    parallelism: 3
 
   # Task: implement the split sentences bolt
   # multilang/resources/split_sentence_bolt.py
@@ -100,7 +100,7 @@ bolts:
     - ["python", "split_sentence_bolt.py"]            
     #output field  
     - ["word"]
-    parallelism: 2
+    parallelism: 3
 
 # Task: implement the word count bolt
   # multilang/resources/word_count_bolt.py
@@ -111,7 +111,7 @@ bolts:
     - ["python", "word_count_bolt.py"]            
     #output field  
     - ["word", "count"]
-    parallelism: 1
+    parallelism: 3
 
   # Task: initialize RedisStoreBolt using poolConfig and storeMapper
   # ClassName is "org.apache.storm.redis.bolt.RedisStoreBolt"
