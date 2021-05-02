@@ -24,39 +24,27 @@ class TopNFinderBolt(storm.BasicBolt):
         Hint: implement efficient algorithm so that it won't be shutdown before task finished
               the algorithm we used when we developed the auto-grader is maintaining a N size min-heap
         '''
-        #storm.logInfo('******************************************************************')
         word0 = tup.values[0].strip()
         if word0 == '':
             return
-        #storm.logInfo("*********************** %s " % word0)
-        count0 = int(tup.values[1]) * -1   #in order to create maxheap
-        #storm.logInfo("*********************** %s " % count0)
-              
-        if len(self.h) == 0:
-            heapq.heappush(self.h, (count0, word0))
-        else:
-            max = -1e10
-            index_max = None
-            wordInList = False
-            index_word = None
-            for i in range(len(self.h)):
-                if self.h[i][0] > max:
-                    max = self.h[i][0]
-                    index_max = i
-                if word0 == self.h[i][1]:
-                    wordInList = True
-                    index_word = i
-            if wordInList == True:        
-                if count0 < self.h[index_word][0]:  #if new# is smaller del old value and then replace
-                    del self.h[index_word]
-                    heapq.heappush(self.h, (count0, word0))
-            elif wordInList == False:
-                if len(self.h) < 10:
-                    heapq.heappush(self.h, (count0, word0))
-                elif count0 < max:
-                    del self.h[index_max]
-                    heapq.heappush(self.h, (count0, word0))  #put new word and its count into the heap:
-                    #print top 10
+        count0 = int(tup.values[1])    
+        index = -1    
+                  
+        for i in range(len(self.h)):
+            if word0 == self.h[i][1]:
+                index = i
+     
+        if index > -1:  #case when word in in the heap at index i
+            if count0 > self.h[index][0]:
+                self.h.pop(index)
+                heapq.heappush(self.h, (count0, word0))
+        else:  #case when word is not in the heap
+            if len(self.h) < 10:
+                heapq.heappush(self.h, (count0, word0))
+            elif count0 > self.h[0][0]:
+                heapq.heappushpop(self.h, (count0, word0))
+
+        #print top 10
         for i in range(len(self.h)):
             if i == 0:
                 topNstring = self.h[i][1]
