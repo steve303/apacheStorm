@@ -1,6 +1,5 @@
 import heapq
 from collections import Counter
-
 import storm
 
 
@@ -9,15 +8,13 @@ class TopNFinderBolt(storm.BasicBolt):
     def initialize(self, conf, context):
         self._conf = conf
         self._context = context
-
         storm.logInfo("topN bolt instance starting...")
 
         # TODO:
         # Task: set N
-        #self.h = []
+        self.h = []
         self.c = Counter() 
         # End
-
         # Hint: Add necessary instance variables and classes if needed
 
     def process(self, tup):
@@ -32,43 +29,44 @@ class TopNFinderBolt(storm.BasicBolt):
         if word0 == '':
             return
         #storm.logInfo("*********************** %s " % word0)
-        count0 = int(tup.values[1])    #in order to create maxheap
+        count0 = int(tup.values[1]) * -1   #in order to create maxheap
         #storm.logInfo("*********************** %s " % count0)
-        '''
-        heapq.heappush(self.h, (count0, word0))
-        
-        if len(self.h) > 10:
-            self.h.pop()
-
-        f = open('/mp7/solution/MP7/test2.txt', 'a')
-        for item in self.h:
-            s = item[1] + ':' + str(item[0]) + '\n'
-            f.write(s)
-        f.write('\n')    
-        f.close()
+              
+        if len(self.h) == 0:
+            heapq.heappush(self.h, (count0, word0))
+        else:
+            max = -1e10
+            index_max = None
+            wordInList = False
+            index_word = None
+            for i in range(len(self.h)):
+                if self.h[i][0] > max:
+                    max = self.h[i][0]
+                    index_max = i
+                if word0 == self.h[i][1]:
+                    wordInList = True
+                    index_word = i
+            if wordInList == True:        
+                if count0 < self.h[index_word][0]:  #if new# is smaller del old value and then replace
+                    del self.h[index_word]
+                    heapq.heappush(self.h, (count0, word0))
+            elif wordInList == False:
+                if len(self.h) < 10:
+                    heapq.heappush(self.h, (count0, word0))
+                elif count0 < max:
+                    del self.h[index_max]
+                    heapq.heappush(self.h, (count0, word0))  #put new word and its count into the heap:
+                    #print top 10
         for i in range(len(self.h)):
             if i == 0:
                 topNstring = self.h[i][1]
             else:
                 topNstring = self.h[i][1] + ', ' + topNstring 
-        '''
-        self.c[word0] = count0
-        topN = self.c.most_common(10)
-
-        for i in range(len(topN)):
-            if i == 0:
-                topNstring = topN[i][0]
-            else:
-                topNstring = topN[i][0] + ', ' + topNstring 
-
- 
         word = 'top-N'
         count = topNstring
         storm.logInfo("Emitting %s %s" % (word, count))
         storm.emit([word, count])
         return
         # End
-
-
 # Start the bolt when it's invoked
 TopNFinderBolt().run()
