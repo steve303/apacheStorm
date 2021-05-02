@@ -1,4 +1,5 @@
 import heapq
+
 from collections import Counter
 import storm
 
@@ -37,6 +38,7 @@ class TopNFinderBolt(storm.BasicBolt):
         if index > -1:  #case when word in in the heap at index i
             if count0 > self.h[index][0]:
                 self.h.pop(index)
+                heapq.heapify(self.h)
                 heapq.heappush(self.h, (count0, word0))
         else:  #case when word is not in the heap
             if len(self.h) < 10:
